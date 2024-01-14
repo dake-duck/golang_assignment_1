@@ -1,0 +1,1 @@
+go run ./cmd/web --dsn postgres://user:passwd@ip:port/dbname
