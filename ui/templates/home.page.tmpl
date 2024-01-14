@@ -1,0 +1,22 @@
+{{template "base" .}}
+{{define "title"}}Home{{end}}
+{{define "main"}}
+<div class="container mt-4">
+    <h2>{{ .Title }}</h2>
+    {{range .News}}
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">{{.Title}}</h5>
+            <p class="card-text">{{.Body}}</p>
+            <p class="card-text"><small class="text-muted">Created: {{.Created.Format "2006-01-02 15:04:05"}}</small></p>
+            <div class="tags">
+                <strong>Tags:</strong>
+                {{range .Tags}}
+                <span class="badge badge-primary" style="color: black;">{{.NameEN}}</span>
+                {{end}}
+            </div>
+        </div>
+    </div>
+    {{end}}
+</div>
+{{end}}
