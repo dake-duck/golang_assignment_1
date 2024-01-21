@@ -1,0 +1,62 @@
+{{template "base" .}}
+{{define "title"}}Home{{end}}
+{{define "main"}}
+<div class="container mt-4">
+    <h2>{{ .Title }}</h2>
+    <form id="myForm">
+        <div>
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title"/>
+        </div>
+        <div>
+            <label for="body">Body</label>
+            <input type="text" id="body" name="body"/>
+        </div>
+        <div>
+            <label for="category">Tags</label>
+            <select id="category" name="category" multiple>
+                {{range .Tags }}
+                    {{ if eq $.Category .ID }}
+                        <option value={{ .ID }} selected >{{ .NameEN }}</option>
+                    {{else}}
+                        <option value={{ .ID }}>{{ .NameEN }}</option>
+                    {{end}}
+                {{end}}
+            </select>
+        </div>
+        <button type="button" onclick="submitForm()">Submit</button>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    function redirectCreatedNews(id) {
+        var createdNewsUrl = new URL(window.location.origin)
+        createdNewsUrl.searchParams.set("id", id)
+        window.open(createdNewsUrl, "_self")
+    }
+
+    function submitForm() {
+        var formData = $("#myForm").serialize();
+        
+        $.ajax({
+            type: "POST",
+            url: "/create", // Replace with your actual endpoint
+            data: formData,
+            success: function(response) {
+                console.log("Form submitted successfully", response);
+                if (response.status) {
+                    redirectCreatedNews(response.newsID)
+                } else {
+                    console.error("Error submitting form", response);
+                    alert("Error submitting form", response);
+                }
+            },
+            error: function(error) {
+                console.error("Error submitting form", error);
+                alert("Error submitting form", error);
+            }
+        });
+    }
+</script>
+{{end}}

@@ -20,7 +20,36 @@ func PointersOf(v interface{}) interface{} {
 	return out.Interface()
 }
 
-func (model *NewsModel) get_tags(newsID int) ([]models.Tag, error) {
+func (model *NewsModel) GetTags() ([]models.Tag, error) {
+	query := `
+		SELECT tag_id, tag_name_en, tag_name_ru
+		FROM tags
+	`
+
+	rows, err := model.DB.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	tags := []models.Tag{}
+	for rows.Next() {
+		tag := models.Tag{}
+		err := rows.Scan(&tag.ID, &tag.NameEN, &tag.NameRU)
+		if err != nil {
+			return nil, err
+		}
+		tags = append(tags, tag)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return tags, nil
+}
+
+func (model *NewsModel) GetTagsByNewsId(newsID int) ([]models.Tag, error) {
 	query := `
 		SELECT t.tag_id, t.tag_name_en, t.tag_name_ru
 		FROM tags t
@@ -69,6 +98,32 @@ func (model *NewsModel) Insert(moodle_id int, title string, content string, atta
 	return int(id), nil
 }
 
+func (model *NewsModel) InsertWithTags(moodleID int, title, content string, tagIDs []int) (int, error) {
+	query := `
+		INSERT INTO news (news_moodle_id, news_title_html, news_body_html, news_created)
+		VALUES ($1, $2, $3, NOW())
+		RETURNING news_id
+	`
+	var newsID int
+	err := model.DB.QueryRow(query, moodleID, title, content).Scan(&newsID)
+	if err != nil {
+		return 0, err
+	}
+
+	tagQuery := `
+		INSERT INTO news_tags_pairs (pair_news_id, pair_tag_id)
+		VALUES ($1, $2)
+	`
+	for _, tagID := range tagIDs {
+		_, err := model.DB.Exec(tagQuery, newsID, tagID)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return int(newsID), nil
+}
+
 func (model *NewsModel) Get(id int) ([]models.News, error) {
 	query := `
 	SELECT
@@ -90,7 +145,7 @@ func (model *NewsModel) Get(id int) ([]models.News, error) {
 		}
 	}
 
-	tags, err := model.get_tags(n.ID)
+	tags, err := model.GetTagsByNewsId(n.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +182,7 @@ func (model *NewsModel) GetByCategory(category int) ([]models.News, error) {
 		}
 	}
 
-	tags, err := model.get_tags(n.ID)
+	tags, err := model.GetTagsByNewsId(n.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +215,7 @@ func (model *NewsModel) Latest() ([]models.News, error) {
 			return nil, err
 		}
 
-		tags, err := model.get_tags(n.ID)
+		tags, err := model.GetTagsByNewsId(n.ID)
 		if err != nil {
 			return nil, err
 		}
