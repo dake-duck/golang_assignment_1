@@ -1,0 +1,54 @@
+{{template "base" .}}
+{{define "title"}}Home{{end}}
+{{define "main"}}
+<div class="container mt-4">
+    <h2>{{ .Title }}</h2>
+    <form id="myForm">
+        <div>
+            <label for="title">Name</label>
+            <input type="text" id="name" name="name"/>
+        </div>
+        <div>
+            <label for="body">Second Name</label>
+            <input type="text" id="sname" name="sname"/>
+        </div>
+        <div>
+            <label for="body">Age</label>
+            <input type="number" id="age" name="age"/>
+        </div>
+        <button type="button" onclick="submitForm()">Submit</button>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    function redirectAccountsDepList(id) {
+        var createdAccountURL = new URL(window.location.origin + "/accounts_dep")
+        createdAccountURL.searchParams.set("id", id)
+        window.open(createdAccountURL, "_self")
+    }
+
+    function submitForm() {
+        var formData = $("#myForm").serialize();
+        
+        $.ajax({
+            type: "POST",
+            url: "/accounts_dep/create", // Replace with your actual endpoint
+            data: formData,
+            success: function(response) {
+                console.log("Form submitted successfully", response);
+                if (response.status) {
+                    redirectAccountsDepList(response.id)
+                } else {
+                    console.error("Error submitting form", response);
+                    alert("Error submitting form", response);
+                }
+            },
+            error: function(error) {
+                console.error("Error submitting form", error);
+                alert("Error submitting form", error);
+            }
+        });
+    }
+</script>
+{{end}}

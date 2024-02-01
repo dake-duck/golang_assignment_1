@@ -1,0 +1,16 @@
+{{template "base" .}}
+{{define "title"}}Home{{end}}
+{{define "main"}}
+<div class="container mt-4">
+    <h2>{{ .Title }}</h2>
+    {{range .Accounts}}
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">{{.Name}} {{.SecondName}}</h5>
+            <p class="card-text">ID: {{.ID}}</p>
+            <p class="card-text">Age: {{.Age}}</p>
+        </div>
+    </div>
+    {{end}}
+</div>
+{{end}}

@@ -7,6 +7,13 @@ import (
 
 var ErrNoRecord = errors.New("models: no matching record found")
 
+type AccountDep struct {
+	ID         int
+	Name       string
+	SecondName string
+	Age        int
+}
+
 type News struct {
 	ID          int
 	MoodleID    int

@@ -12,9 +12,10 @@ import (
 )
 
 type application struct {
-	errorLog *log.Logger
-	infoLog  *log.Logger
-	snippets *pgsql.NewsModel
+	errorLog   *log.Logger
+	infoLog    *log.Logger
+	newsModel  *pgsql.NewsModel
+	accountDep *pgsql.AccountDep
 }
 
 func main() {
@@ -32,9 +33,10 @@ func main() {
 	defer db.Close()
 
 	app := &application{
-		errorLog: errorLog,
-		infoLog:  infoLog,
-		snippets: &pgsql.NewsModel{DB: db},
+		errorLog:   errorLog,
+		infoLog:    infoLog,
+		newsModel:  &pgsql.NewsModel{DB: db},
+		accountDep: &pgsql.AccountDep{DB: db},
 	}
 	srv := &http.Server{
 		Addr:     *addr,
