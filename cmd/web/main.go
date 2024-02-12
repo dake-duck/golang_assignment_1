@@ -11,11 +11,33 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type application struct {
-	errorLog   *log.Logger
-	infoLog    *log.Logger
-	newsModel  *pgsql.NewsModel
-	accountDep *pgsql.AccountDep
+const (
+	PermissionReadNews     = "read_news"
+	PermissionCreateNews   = "create_news"
+	PermissionReadAccDep   = "read_acc_dep"
+	PermissionCreateAccDep = "create_acc_dep"
+)
+
+func (app *Application) RequirePermission(requiredPermission string, next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userEmail := app.GetUserMail(r)
+
+		if !app.HasPermission(userEmail, requiredPermission) {
+			http.Error(w, "Not Permitted", http.StatusUnauthorized)
+			return
+		}
+
+		next(w, r)
+	}
+}
+
+func (app *Application) HasPermission(userEmail, requiredPermission string) bool {
+	permissions, err := app.users.GetUserPermissions(userEmail)
+	if err != nil {
+		return false
+	}
+
+	return app.HavePermission(permissions, requiredPermission)
 }
 
 func main() {
@@ -32,11 +54,12 @@ func main() {
 	}
 	defer db.Close()
 
-	app := &application{
+	app := &Application{
 		errorLog:   errorLog,
 		infoLog:    infoLog,
 		newsModel:  &pgsql.NewsModel{DB: db},
 		accountDep: &pgsql.AccountDep{DB: db},
+		users:      &pgsql.UserDB{DB: db},
 	}
 	srv := &http.Server{
 		Addr:     *addr,

@@ -7,6 +7,17 @@ import (
 
 var ErrNoRecord = errors.New("models: no matching record found")
 
+type User struct {
+	ID           int
+	Mail         string
+	PasswordHash string
+}
+
+type Permission struct {
+	key       string
+	permitted bool
+}
+
 type AccountDep struct {
 	ID         int
 	Name       string
